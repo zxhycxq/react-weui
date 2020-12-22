@@ -8,24 +8,17 @@ class PickerDemo extends React.Component {
     state = {
         picker_show: false,
         picker_value: '',
+        
         picker_group: [
             {
                 items: [
                     {
-                        label: 'Item1'
+                        label: '男',
+                        gender: 1
                     },
                     {
-                        label: 'Item2 (Disabled)',
-                        disabled: true
-                    },
-                    {
-                        label: 'Item3'
-                    },
-                    {
-                        label: 'Item4'
-                    },
-                    {
-                        label: 'Item5'
+                        label: '女',
+                        gender: 0
                     }
                 ]
             }
@@ -38,6 +31,13 @@ class PickerDemo extends React.Component {
         this.setState({
             picker_show: false,
             city_show: false
+        })
+    }
+    
+    changeData(text,a,b){
+        console.log('%c--text-- ', 'color:blue;', text,a,b);
+        this.setState({
+            city_value: text, city_show: false
         })
     }
 
@@ -66,12 +66,9 @@ class PickerDemo extends React.Component {
                 <CityPicker
                     data={cnCity}
                     onCancel={e=>this.setState({city_show: false})}
-                    onChange={text=>this.setState({city_value: text, city_show: false})}
+                    onChange={(text,a,b)=>this.changeData(text,a,b)}
                     show={this.state.city_show}
                 />
-
-
-
                 <Form>
                     <FormCell>
                         <CellHeader>
@@ -96,6 +93,7 @@ class PickerDemo extends React.Component {
                     onChange={selected=>{
                         let value = ''
                         selected.forEach( (s, i)=> {
+                            console.log('%c--s-- ', 'color:blue;',selected, s);
                             value = this.state.picker_group[i]['items'][s].label
                         })
                         this.setState({
@@ -107,9 +105,6 @@ class PickerDemo extends React.Component {
                     show={this.state.picker_show}
                     onCancel={e=>this.setState({picker_show: false})}
                 />
-
-                <br/>
-
             </Page>
         );
     }

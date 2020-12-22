@@ -15,10 +15,10 @@ class PickerGroup extends Component {
     }
 
     static defaultProps = {
-        height: 238,
-        itemHeight: 25 + 9, //content + padding
-        indicatorTop: 102,
-        indicatorHeight: 34,
+        height: 238,         // 总高度
+        itemHeight: 25 + 9, //内容加 padding content + padding
+        indicatorTop: 102,   // 绝对定位的指示器的top 值
+        indicatorHeight: 34,  // 绝对定位的指示器的 height 值
         aniamtion: true,
         groupIndex: -1,
         defaultIndex: -1,
@@ -29,7 +29,6 @@ class PickerGroup extends Component {
 
     constructor(props){
         super(props);
-
         this.state = {
             touching: false,
             ogY: 0,
@@ -37,7 +36,7 @@ class PickerGroup extends Component {
             touchId: undefined,
             translate: 0,
             totalHeight: 0,
-            selected: 0,
+            selected: 0,            // 选中索引
             animating: this.props.animation
         };
 
@@ -48,101 +47,115 @@ class PickerGroup extends Component {
     }
 
     componentDidMount(){
+        // console.log('%c--componentDidMount-- ', 'color:blue;', 'componentDidMount', this.props);
         this.adjustPosition(this.props);
     }
 
     componentWillReceiveProps(nextProps){
+         // console.log('componentWillReceiveProps',nextProps);
         this.adjustPosition(nextProps);
     }
-
+    // 调整位置 translate
     adjustPosition(props){
         const { items, itemHeight, indicatorTop, defaultIndex } = props;
-        const totalHeight = items.length * itemHeight;
-        let translate = totalHeight <= indicatorTop ? indicatorTop : 0;
-
+        const totalHeight = items.length * itemHeight; // 每一项的高度✖️ 项的数
+        let translate = totalHeight <= indicatorTop ? indicatorTop : 0;// 项的数目是否比指示器高，不是则取indicatorTop
+        let upperCount = Math.floor(indicatorTop / itemHeight);  // 指示器上面可以有几项内容
+        // console.log('%c--adjustPosition-- ', 'color:cyan;', items, defaultIndex, translate,'upperCount',upperCount);
+        
         if (defaultIndex > -1) {
             if (translate === 0){
-                let upperCount = Math.floor(indicatorTop / itemHeight);
-                if ( defaultIndex > upperCount ){
-                    //over
+                if ( defaultIndex > upperCount ){           //over
                     let overCount = defaultIndex - upperCount;
                     translate -= overCount * itemHeight;
-                } else if ( defaultIndex === upperCount){
+                    // console.log('%c--defaultIndex > upperCount-- ', 'color:blue;',overCount,translate);
+                } else if ( defaultIndex === upperCount){   // 没有变化  transform：translate(0px, 0px)
                     translate = 0;
-                } else {
-                    //less
+                } else {                                    // less    translate(0px, 34px)
                     translate += ( Math.abs(upperCount - defaultIndex) * itemHeight);
                 }
-                //if(props.groupIndex == 2) console.log(defaultIndex,translate, upperCount)
             } else {
-                //total item less than indicator height
-                translate -= itemHeight * defaultIndex;
+                translate -= itemHeight * defaultIndex; //所有的item 比indicator height小
             }
         }
 
-    	this.setState({ selected: defaultIndex, ogTranslate: translate, totalHeight, translate,
-    	}, () => defaultIndex > -1 ? this.updateSelected(false) : this.updateSelected() );
+    	this.setState({
+            selected: defaultIndex,
+            ogTranslate: translate,
+            totalHeight,
+            translate,
+    	},
+            () => defaultIndex > -1 ?
+                this.updateSelected(false) : this.updateSelected()
+        );
     }
 
     updateSelected(propagate = true){
         const { items, itemHeight, indicatorTop, indicatorHeight, onChange, groupIndex } = this.props;
+        let { translate } = this.state;
         let selected = 0;
+        // 确认selected的值为 item 中的哪一个
         items.forEach( (item, i) => {
-            //console.log(i, this.state.translate, (this.state.translate + (itemHeight * i)), indicatorTop, this.state.translate + (itemHeight * i) + itemHeight , indicatorTop + indicatorHeight)
-            if ( !item.disabled && (this.state.translate + (itemHeight * i)) >= indicatorTop &&
-            ( this.state.translate + (itemHeight * i) + itemHeight ) <= indicatorTop + indicatorHeight ){
+            let itemHeightN =itemHeight * i;
+            // console.log("updateSelected",propagate,translate, translate + itemHeightN + itemHeight )
+            if ( translate + itemHeightN >= indicatorTop &&
+            ( translate + itemHeightN + itemHeight ) <= indicatorTop + indicatorHeight ){
                 selected = i;
             }
         });
 
-        if (onChange && propagate) onChange(items[selected], selected, groupIndex);
+        if (onChange && propagate) {
+            console.log('%c--onchange-- ', 'color:orange;', items[selected], selected, groupIndex);
+            onChange(items[selected], selected, groupIndex)
+        };
     }
-
+    // 触摸开始
     handleTouchStart(e){
-        if (this.state.touching || this.props.items.length <= 1) return;
-
+        let { touching, translate} = this.state;
+        if (touching || this.props.items.length <= 1) return;      // 长度小于 1 以及未触摸
+        let targetTouches=e.targetTouches[0];
         this.setState({
             touching: true,
-            ogTranslate: this.state.translate,
-            touchId: e.targetTouches[0].identifier,
-        	ogY: this.state.translate === 0 ? e.targetTouches[0].pageY : e.targetTouches[0].pageY - this.state.translate,
+            ogTranslate: translate,
+            touchId: targetTouches.identifier,
+        	ogY: translate === 0 ? targetTouches.pageY : targetTouches.pageY - translate,
         	animating: false
         });
     }
 
     handleTouchMove(e){
-        if (!this.state.touching || this.props.items.length <= 1) return;
-        if (e.targetTouches[0].identifier !== this.state.touchId) return;
+        let { touching, translate, touchId, ogY} = this.state;
+        if (!touching || this.props.items.length <= 1) return;
+        let targetTouches=e.targetTouches[0];
+        if (targetTouches.identifier !== touchId) return;
 
         //prevent move background
         e.preventDefault();
 
-        const pageY = e.targetTouches[0].pageY;
-        const diffY = pageY - this.state.ogY;
-
-        this.setState({
-            translate: diffY
-        });
+        const pageY = targetTouches.pageY;
+        const diffY = pageY - ogY;
+        // console.log('%c--移动-- ', 'color:blue;', pageY,ogY,' -diffY- ',diffY);
+        this.setState({ translate: diffY });
     }
 
     handleTouchEnd(e){
-        if (!this.state.touching || this.props.items.length <= 1) return;
+        let { touching, ogTranslate,totalHeight} = this.state;
+        if (!touching || this.props.items.length <= 1) return;
 
         const { indicatorTop, indicatorHeight, itemHeight } = this.props;
         let translate = this.state.translate;
-
-        if ( Math.abs(translate - this.state.ogTranslate) < ( itemHeight * .51 ) ){
-            translate = this.state.ogTranslate;
-        } else if (translate > indicatorTop) {
-            //top boundry
+        // console.log('%c--移动结束-- ', 'color:red;', translate,ogTranslate);
+        if ( Math.abs(translate - ogTranslate) < ( itemHeight * .51 ) ){
+            translate = ogTranslate;
+        } else if (translate > indicatorTop) {   // translate(0px, 102px)  上拉过多
             translate = indicatorTop;
-        } else if (translate + this.state.totalHeight < indicatorTop + indicatorHeight) {
-            //bottom
-            translate = indicatorTop + indicatorHeight - this.state.totalHeight;
+        } else if (translate + totalHeight < indicatorTop + indicatorHeight) {
+            translate = indicatorTop + indicatorHeight - totalHeight;
         } else {
             //pass single item range but not exceed boundry
+            // console.log('%c--pass single item range but not exceed boundry-- ', 'color:blue;');
             let step = 0, adjust = 0;
-            let diff = (translate - this.state.ogTranslate) / itemHeight;
+            let diff = (translate - ogTranslate) / itemHeight;
 
             if (Math.abs(diff) < 1){
                 step = diff > 0 ? 1 : -1;
@@ -150,8 +163,7 @@ class PickerGroup extends Component {
                 adjust = Math.abs((diff % 1) * 100) > 50 ? 1 : 0;
                 step = diff > 0 ? Math.floor(diff) + adjust : Math.ceil(diff) - adjust;
             }
-
-            translate = this.state.ogTranslate + ( step * itemHeight );
+            translate = ogTranslate + ( step * itemHeight );
         }
 
         this.setState({
@@ -165,11 +177,13 @@ class PickerGroup extends Component {
     }
 
     render() {
-        const { items, className, height, itemHeight, indicatorTop, indicatorHeight, onChange, aniamtion, groupIndex, defaultIndex, mapKeys, ...others } = this.props;
+        const { items, className, height, itemHeight, indicatorTop, indicatorHeight, onChange,
+            aniamtion, groupIndex, defaultIndex, mapKeys, ...others } = this.props;
+        let { translate, animating} = this.state;
         const cls = classNames('weui-picker__group', className);
         const styles = {
-            'transform': `translate(0, ${this.state.translate}px)`,
-            'transition': this.state.animating ? 'transform .3s' : 'none'
+            'transform': `translate(0, ${translate}px)`,
+            'transition': animating ? 'transform .3s' : 'none'
         };
 
         return (
@@ -184,10 +198,8 @@ class PickerGroup extends Component {
                     style={styles}
                     ref="content">
                     { items.map( (item, j) => {
-                        const label = item[this.props.mapKeys.label];
-                        const itemCls = classNames('weui-picker__item', {
-                            'weui-picker__item_disabled': item.disabled
-                        });
+                        const label = item[mapKeys.label];
+                        const itemCls = classNames('weui-picker__item');
 
                         return <div key={j} className={itemCls}>{ label }</div>;
                     }) }

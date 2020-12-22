@@ -60,15 +60,16 @@ class Picker extends Component {
 
     constructor(props){
         super(props);
-
+        let { defaultSelect, groups, actions, lang, onCancel,totalHeight} = this.props;
+        // console.log('%c--1-- ', 'color:blue;', defaultSelect, groups, actions, lang, onCancel,totalHeight);
         this.state = {
-            selected: this.props.defaultSelect ? this.props.defaultSelect : Array(this.props.groups.length).fill(-1),
-            actions: this.props.actions.length > 0 ? this.props.actions : [{
-                label: this.props.lang.leftBtn,
-                onClick: e=>this.handleClose( ()=> {if (this.props.onCancel) this.props.onCancel(e);} )
+            selected: defaultSelect ? defaultSelect : Array(groups.length).fill(-1),
+            actions: actions.length > 0 ? actions : [{
+                label: lang.leftBtn,
+                onClick: e=>this.handleClose( ()=> {if (onCancel) onCancel(e);} )
             },
             {
-                label: this.props.lang.rightBtn,
+                label: lang.rightBtn,
                 onClick: e=>this.handleChanges()
             }],
             closing: false
@@ -78,20 +79,29 @@ class Picker extends Component {
         this.handleChange = this.handleChange.bind(this);
         this.handleClose = this.handleClose.bind(this);
     }
-
+    //  确定按钮
     handleChanges(){
-        this.handleClose( ()=> { if (this.props.onChange) this.props.onChange(this.state.selected, this); } );
+        let { groups,selected } = this.state;
+        this.handleClose( ()=> {
+            if (this.props.onChange)
+                console.log('%c--this.state.selected,onChange-- ', 'color:blue;', selected);
+                this.props.onChange(selected,this);
+        } );
     }
-
+    // 组改变
     handleChange(item, i, groupIndex){
         let selected = this.state.selected;
-
         selected[groupIndex] = i;
+        console.log('%c--组改变selected-- ', 'color:blue;', selected,i,groupIndex);
         this.setState({ selected }, ()=>{
-            if (this.props.onGroupChange) this.props.onGroupChange(item, i, groupIndex, this.state.selected, this);
+            if (this.props.onGroupChange) {
+                console.log('%c--组改变-- ', 'color:blue;', item);
+                // TODO 月份判断，确定日期
+                this.props.onGroupChange(item, i, groupIndex, this.state.selected, this)
+            };
         });
     }
-
+    // 关闭
     handleClose(cb){
         this.setState({
             closing: true
@@ -100,8 +110,9 @@ class Picker extends Component {
             cb();
         }, 300));
     }
-
+    //上面部分内容
     renderActions(){
+        // 取消和确定
         let elActions = this.state.actions.map( (action, i)=> {
             const { label, ...others } = action;
             return <a {...others} key={i} className="weui-picker__action"> { label }</a>;
@@ -113,28 +124,36 @@ class Picker extends Component {
             </div>
         );
     }
-
+    // 组渲染
     renderGroups(){
         return this.props.groups.map( (group, i) => {
-            return <PickerGroup key={i} {...group} onChange={this.handleChange} groupIndex={i} defaultIndex={this.state.selected[i]} />;
+            return <PickerGroup
+                    key={i} {...group}
+                    onChange={this.handleChange}
+                    groupIndex={i}
+                    defaultIndex={this.state.selected[i]} />;
         });
     }
 
     render(){
-        const { className, show, actions, groups, defaultSelect, onGroupChange, onChange, onCancel, ...others } = this.props;
+        const { className, show, actions, groups, defaultSelect, onGroupChange, onChange, onCancel, ...others
+        
+        } = this.props;
+        let { closing } = this.state;
         const cls = classNames('weui-picker', {
-            'weui-animate-slide-up': show && !this.state.closing,
-            'weui-animate-slide-down': this.state.closing
+            'weui-animate-slide-up': show && !closing,
+            'weui-animate-slide-down': closing
         }, className);
 
         const maskCls = classNames({
-            'weui-animate-fade-in': show && !this.state.closing,
-            'weui-animate-fade-out': this.state.closing
+            'weui-animate-fade-in': show && !closing,
+            'weui-animate-fade-out': closing
         });
 
-        return this.props.show ? (
+        return show ? (
             <div>
-                <Mask className={maskCls} onClick={e=>this.handleClose( ()=> {if (this.props.onCancel) this.props.onCancel(e);} )} />
+                <Mask className={maskCls}
+                      onClick={e=>this.handleClose( ()=> {if (onCancel) onCancel(e);} )} />
                 <div className={cls} {...others}>
                     { this.renderActions() }
                     <div className="weui-picker__bd">
