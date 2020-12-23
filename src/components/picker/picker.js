@@ -4,51 +4,19 @@ import PickerGroup from './picker_group';
 import classNames from '../../utils/classnames';
 import Mask from '../mask';
 /**
- *  Mobile select ui, currently only support Touch Events
- *
+ *  移动端，仅支持 touch 事件
  */
 class Picker extends Component {
     static propTypes = {
-        /**
-         * consists of array of object(max 2) with property `label` and others pass into element
-         *
-         */
-        actions: PropTypes.array,
-        /**
-         * array objects consists of groups for each scroll group
-         *
-         */
-        groups: PropTypes.array,
-        /**
-         * default group index thats selected, if not provide, automatic chose the best fiting item when mounted
-         *
-         */
-        defaultSelect: PropTypes.array,
-        /**
-         * trigger when individual group change, pass property(`item`, `item index in group`, `group index in groups`, `selected`, `picker instance`)
-         *
-         */
+        actions: PropTypes.array, // consists of array of object(max 2) with property `label` and others pass into element
+        groups: PropTypes.array,     // array objects consists of groups for each scroll group
+        defaultSelect: PropTypes.array, // default group index thats selected, if not provide, automatic chose the best fiting item when mounted
+        // trigger when individual group change, pass property(`item`, `item index in group`, `group index in groups`, `selected`, `picker instance`)
         onGroupChange: PropTypes.func,
-        /**
-         * on selected change, pass property `selected` for array of slected index to `groups`
-         *
-         */
-        onChange: PropTypes.func,
-        /**
-         * excute when the popup about to close
-         *
-         */
-        onCancel: PropTypes.func,
-        /**
-         * display the component
-         *
-         */
-        show: PropTypes.bool,
-        /**
-         * language object consists of `leftBtn` and `rightBtn`
-         *
-         */
-        lang: PropTypes.object,
+        onChange: PropTypes.func, // on selected change, pass property `selected` for array of slected index to `groups`
+        onCancel: PropTypes.func,// excute when the popup about to close
+        show: PropTypes.bool, // display the component
+        lang: PropTypes.object, // language object consists of `leftBtn` and `rightBtn`
     };
 
     static defaultProps = {
@@ -60,8 +28,8 @@ class Picker extends Component {
 
     constructor(props){
         super(props);
-        let { defaultSelect, groups, actions, lang, onCancel,totalHeight} = this.props;
-        // console.log('%c--1-- ', 'color:blue;', defaultSelect, groups, actions, lang, onCancel,totalHeight);
+        let { defaultSelect, groups, actions, lang, onCancel} = this.props;
+        console.log('%c--this.props-- ', 'color:blue;', this.props);
         this.state = {
             selected: defaultSelect ? defaultSelect : Array(groups.length).fill(-1),
             actions: actions.length > 0 ? actions : [{
@@ -81,10 +49,10 @@ class Picker extends Component {
     }
     //  确定按钮
     handleChanges(){
-        let { groups,selected } = this.state;
+        let { selected } = this.state;
+        console.log('%c--确定-- ', 'color:blue;', selected,this.props);
         this.handleClose( ()=> {
             if (this.props.onChange)
-                console.log('%c--this.state.selected,onChange-- ', 'color:blue;', selected);
                 this.props.onChange(selected,this);
         } );
     }
@@ -92,11 +60,8 @@ class Picker extends Component {
     handleChange(item, i, groupIndex){
         let selected = this.state.selected;
         selected[groupIndex] = i;
-        console.log('%c--组改变selected-- ', 'color:blue;', selected,i,groupIndex);
         this.setState({ selected }, ()=>{
             if (this.props.onGroupChange) {
-                console.log('%c--组改变-- ', 'color:blue;', item);
-                // TODO 月份判断，确定日期
                 this.props.onGroupChange(item, i, groupIndex, this.state.selected, this)
             };
         });
@@ -128,7 +93,8 @@ class Picker extends Component {
     renderGroups(){
         return this.props.groups.map( (group, i) => {
             return <PickerGroup
-                    key={i} {...group}
+                    key={i}
+                    {...group}
                     onChange={this.handleChange}
                     groupIndex={i}
                     defaultIndex={this.state.selected[i]} />;
@@ -136,15 +102,12 @@ class Picker extends Component {
     }
 
     render(){
-        const { className, show, actions, groups, defaultSelect, onGroupChange, onChange, onCancel, ...others
-        
-        } = this.props;
+        const { className, show, actions, groups, defaultSelect, onGroupChange, onChange, onCancel, ...others } = this.props;
         let { closing } = this.state;
         const cls = classNames('weui-picker', {
             'weui-animate-slide-up': show && !closing,
             'weui-animate-slide-down': closing
         }, className);
-
         const maskCls = classNames({
             'weui-animate-fade-in': show && !closing,
             'weui-animate-fade-out': closing

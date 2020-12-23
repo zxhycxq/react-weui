@@ -2,6 +2,7 @@ import React from 'react';
 import { Popup, Picker, CityPicker, Form, FormCell, CellBody, CellHeader, Label, Input } from '../../../build/packages';
 import Page from '../../component/page';
 import cnCity from './cnCity';
+import city from './city';
 
 class PickerDemo extends React.Component {
 
@@ -33,13 +34,6 @@ class PickerDemo extends React.Component {
             city_show: false
         })
     }
-    
-    changeData(text,a,b){
-        console.log('%c--text-- ', 'color:blue;', text,a,b);
-        this.setState({
-            city_value: text, city_show: false
-        })
-    }
 
     render() {
         return (
@@ -47,7 +41,7 @@ class PickerDemo extends React.Component {
                 <Form>
                     <FormCell>
                         <CellHeader>
-                            <Label>City</Label>
+                            <Label>日期选择</Label>
                         </CellHeader>
                         <CellBody>
                             <Input type="text"
@@ -56,7 +50,7 @@ class PickerDemo extends React.Component {
                                     e.preventDefault();
                                     this.setState({city_show: true})
                                 }}
-                                placeholder="Chose Your City"
+                                placeholder="日期选择"
                                 readOnly={true}
                             />
                         </CellBody>
@@ -65,14 +59,16 @@ class PickerDemo extends React.Component {
 
                 <CityPicker
                     data={cnCity}
+                    // data={city}
                     onCancel={e=>this.setState({city_show: false})}
-                    onChange={(text,a,b)=>this.changeData(text,a,b)}
+                    onChange={text=>this.setState({city_value: text, city_show: false})}
                     show={this.state.city_show}
+                    selected={ [70,1,22] }
                 />
                 <Form>
                     <FormCell>
                         <CellHeader>
-                            <Label>Direct Picker</Label>
+                            <Label>单选</Label>
                         </CellHeader>
                         <CellBody>
                             <Input
@@ -104,6 +100,7 @@ class PickerDemo extends React.Component {
                     groups={this.state.picker_group}
                     show={this.state.picker_show}
                     onCancel={e=>this.setState({picker_show: false})}
+                    defaultSelect={ [1] }
                 />
             </Page>
         );

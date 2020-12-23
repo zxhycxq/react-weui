@@ -47,28 +47,24 @@ class PickerGroup extends Component {
     }
 
     componentDidMount(){
-        // console.log('%c--componentDidMount-- ', 'color:blue;', 'componentDidMount', this.props);
         this.adjustPosition(this.props);
     }
 
     componentWillReceiveProps(nextProps){
-         // console.log('componentWillReceiveProps',nextProps);
         this.adjustPosition(nextProps);
     }
     // 调整位置 translate
     adjustPosition(props){
         const { items, itemHeight, indicatorTop, defaultIndex } = props;
-        const totalHeight = items.length * itemHeight; // 每一项的高度✖️ 项的数
+        const totalHeight = items.length * itemHeight; // 每一项的高度 x 项的数
         let translate = totalHeight <= indicatorTop ? indicatorTop : 0;// 项的数目是否比指示器高，不是则取indicatorTop
         let upperCount = Math.floor(indicatorTop / itemHeight);  // 指示器上面可以有几项内容
-        // console.log('%c--adjustPosition-- ', 'color:cyan;', items, defaultIndex, translate,'upperCount',upperCount);
         
         if (defaultIndex > -1) {
             if (translate === 0){
                 if ( defaultIndex > upperCount ){           //over
                     let overCount = defaultIndex - upperCount;
                     translate -= overCount * itemHeight;
-                    // console.log('%c--defaultIndex > upperCount-- ', 'color:blue;',overCount,translate);
                 } else if ( defaultIndex === upperCount){   // 没有变化  transform：translate(0px, 0px)
                     translate = 0;
                 } else {                                    // less    translate(0px, 34px)
@@ -97,7 +93,6 @@ class PickerGroup extends Component {
         // 确认selected的值为 item 中的哪一个
         items.forEach( (item, i) => {
             let itemHeightN =itemHeight * i;
-            // console.log("updateSelected",propagate,translate, translate + itemHeightN + itemHeight )
             if ( translate + itemHeightN >= indicatorTop &&
             ( translate + itemHeightN + itemHeight ) <= indicatorTop + indicatorHeight ){
                 selected = i;
@@ -105,7 +100,6 @@ class PickerGroup extends Component {
         });
 
         if (onChange && propagate) {
-            console.log('%c--onchange-- ', 'color:orange;', items[selected], selected, groupIndex);
             onChange(items[selected], selected, groupIndex)
         };
     }
@@ -134,7 +128,6 @@ class PickerGroup extends Component {
 
         const pageY = targetTouches.pageY;
         const diffY = pageY - ogY;
-        // console.log('%c--移动-- ', 'color:blue;', pageY,ogY,' -diffY- ',diffY);
         this.setState({ translate: diffY });
     }
 
@@ -144,7 +137,6 @@ class PickerGroup extends Component {
 
         const { indicatorTop, indicatorHeight, itemHeight } = this.props;
         let translate = this.state.translate;
-        // console.log('%c--移动结束-- ', 'color:red;', translate,ogTranslate);
         if ( Math.abs(translate - ogTranslate) < ( itemHeight * .51 ) ){
             translate = ogTranslate;
         } else if (translate > indicatorTop) {   // translate(0px, 102px)  上拉过多
@@ -153,7 +145,6 @@ class PickerGroup extends Component {
             translate = indicatorTop + indicatorHeight - totalHeight;
         } else {
             //pass single item range but not exceed boundry
-            // console.log('%c--pass single item range but not exceed boundry-- ', 'color:blue;');
             let step = 0, adjust = 0;
             let diff = (translate - ogTranslate) / itemHeight;
 
