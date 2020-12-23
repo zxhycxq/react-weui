@@ -3,7 +3,8 @@ import { Popup, Picker, CityPicker, Form, FormCell, CellBody, CellHeader, Label,
 import Page from '../../component/page';
 import cnCity from './cnCity';
 import city from './city';
-
+console.log('%c--city-- ', 'color:blue;', cnCity);
+console.log('%c--city-- ', 'color:red;', cnCity.yearMonthDay);
 class PickerDemo extends React.Component {
 
     state = {
@@ -58,8 +59,9 @@ class PickerDemo extends React.Component {
                 </Form>
 
                 <CityPicker
-                    data={cnCity}
-                    // data={city}
+                    // data={cnCity}
+                    // data={cnCity.yearAndMonthData}
+                    data={cnCity.yearMonthDay}
                     onCancel={e=>this.setState({city_show: false})}
                     onChange={text=>this.setState({city_value: text, city_show: false})}
                     show={this.state.city_show}
